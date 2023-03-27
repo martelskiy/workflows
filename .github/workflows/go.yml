@@ -1,0 +1,33 @@
+name: "Go Reusable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        type: string
+        default: "1.20.x"
+
+jobs:
+  go-build-test-lint:
+    name: "Runs Go CI steps"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: true
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
+      
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest

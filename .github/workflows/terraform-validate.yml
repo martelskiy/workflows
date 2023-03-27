@@ -1,0 +1,60 @@
+name: "Terraform Validate Reusable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+  
+env:
+  TF_LOG: WARN
+  TF_VERSION: 1.4.2
+  TF_LINT_VERSION: v0.45.0
+
+jobs:
+  terraform-validate:
+    name: "Validate infrastructure"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -recursive -check
+
+      - uses: actions/cache@v3
+        name: TFLint Cache Plugin
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+
+      - uses: terraform-linters/setup-tflint@v3
+        name: Setup TFLint
+        with:
+          tflint_version:  ${{ env.TF_LINT_VERSION }}
+
+      - name: Show Version
+        run: tflint --version
+
+      - name: Init TFLint
+        run: tflint --init
+        env:
+          # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint -f compact
