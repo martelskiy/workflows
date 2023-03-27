@@ -18,6 +18,7 @@ env:
   TF_PLAN_FILE: tf.plan
   AWS_REGION: "eu-north-1"
   TF_VERSION: 1.4.2
+  TF_VAR_github_sha: ${{ github.sha }}
 
 jobs:
   terraform-deploy-development:
@@ -57,7 +58,7 @@ jobs:
 
       - name: Terraform Plan Development
         id: plan
-        run: terraform plan -var="github_sha=${{ github.sha }}" -var-file="vars/development.tfvars" -out="${TF_PLAN_FILE}"
+        run: terraform plan -var-file="vars/development.tfvars" -out="${TF_PLAN_FILE}"
         continue-on-error: true
 
       - name: Terraform Plan Status
@@ -104,7 +105,7 @@ jobs:
 
       - name: Terraform Plan Production
         id: plan
-        run: terraform plan -var="github_sha=${{ github.sha }}" -var-file="vars/production.tfvars" -out="${TF_PLAN_FILE}"
+        run: terraform plan -var-file="vars/production.tfvars" -out="${TF_PLAN_FILE}"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve ${TF_PLAN_FILE}
