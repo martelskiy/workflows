@@ -13,6 +13,10 @@ on:
         required: false
         type: boolean
         default: false
+      image-architecture:
+        required: false
+        type: string
+        default: linux/arm64
 
 env:
   AWS_REGION: "eu-north-1"
@@ -60,9 +64,10 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        IMAGE_ARCHITECTURE: ${{ inputs.image-architecture }}
         DOCKERFILE_DIR: build
       run: |
-        docker build --build-arg "ECR_REGISTRY=$ECR_REGISTRY" -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_DIR/Dockerfile .
+        docker build --build-arg "ECR_REGISTRY=$ECR_REGISTRY" --platform $IMAGE_ARCHITECTURE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_DIR/Dockerfile .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       
     - name: Build, tag, and push image to Amazon ECR
