@@ -1,0 +1,62 @@
+name: "Terraform Destroy Reusable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      environment:
+        description: "environment to destroy to - development or production"
+        type: string
+        required: true
+  
+env:
+  TF_LOG: WARN
+  TF_IN_AUTOMATION: 1
+  TF_INPUT: 0
+  AWS_REGION: "eu-north-1"
+  TF_VERSION: 1.4.2
+
+jobs:
+  terraform-destroy:
+    name: "Terraform Destroy"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials Production
+        if: inputs.environment == 'production'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::480162773870:role/github-actions
+          role-session-name: GithubActionsSession
+
+      - name: Configure AWS Credentials Development
+        if: inputs.environment == 'development'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::226165991761:role/github-actions
+          role-session-name: GithubActionsSession
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config="vars/backend/${{ inputs.environment }}.tfvars"
+
+      - name: Terraform Destroy
+        run: terraform destroy -var-file="vars/${{ inputs.environment }}.tfvars" --auto-approve
