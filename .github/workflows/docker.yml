@@ -9,14 +9,11 @@ on:
       ecr-repository:
         required: true
         type: string
-      cross-platform:
-        required: false
-        type: boolean
-        default: false
-      image-architecture:
+      image-architectures:
+        description: Comma separated list of architectures. Defaults to 'linux/amd64,linux/arm64'
         required: false
         type: string
-        default: linux/arm64
+        default: linux/amd64,linux/arm64
 
 env:
   AWS_REGION: "eu-north-1"
@@ -58,24 +55,21 @@ jobs:
       run: |
         echo $GITHUB_SHA
         echo "IMAGE_TAG=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      with:
+          platforms: ${{ inputs.image-architectures }}
 
-    - name: Build, tag, and push image to Amazon ECR
-      if: inputs.cross-platform == false
+    - name: Build and push
+      uses: docker/build-push-action@v4
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ inputs.ecr-repository }}
-        IMAGE_ARCHITECTURE: ${{ inputs.image-architecture }}
-        DOCKERFILE_DIR: build
-      run: |
-        docker build --build-arg "ECR_REGISTRY=$ECR_REGISTRY" --platform $IMAGE_ARCHITECTURE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_DIR/Dockerfile .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      
-    - name: Build, tag, and push image to Amazon ECR
-      if: inputs.cross-platform
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ inputs.ecr-repository }}
-        DOCKERFILE_DIR: build
-      run: |
-        docker buildx create --use
-        docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_DIR/Dockerfile .
+      with:
+          context: .
+          file: build/Dockerfile
+          push: true
+          platforms: ${{ inputs.image-architectures }}
+          build-args: ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
