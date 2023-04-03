@@ -10,6 +10,14 @@ on:
         description: "environment to deploy to - development or production"
         type: string
         required: true
+      download-artifact-path:
+        description: "Artifact path including file name"
+        required: false
+        type: string
+      artifact-name:
+        description: "Name of the artifact. Required if download-artifact-path input is set"
+        required: false
+        type: string
   
 env:
   TF_LOG: WARN
@@ -40,6 +48,12 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      - uses: actions/download-artifact@v3
+        if: inputs.download-artifact-path != ''
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.download-artifact-path }}
 
       - name: Configure AWS Credentials development
         uses: aws-actions/configure-aws-credentials@v2
