@@ -102,6 +102,12 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - uses: actions/download-artifact@v3
+        if: inputs.download-artifact-path != ''
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.download-artifact-path }}
+          
       - name: Configure AWS Credentials Production
         uses: aws-actions/configure-aws-credentials@v2
         with:
