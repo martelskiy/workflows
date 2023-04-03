@@ -7,6 +7,14 @@ on:
         required: false
         type: string
         default: "1.20.x"
+      upload-build-artifact-path:
+        description: "Path to upload Go binary artifact"
+        required: false
+        type: string
+      artifact-name:
+        description: "Go binary artifact name. Required if upload-build-artifact-path input is set"
+        required: false
+        type: string
     secrets:
       PERSONAL_ACCESS_TOKEN:
         required: true
@@ -31,7 +39,13 @@ jobs:
 
       - name: Build
         run: make build
-
+      
+      - uses: actions/upload-artifact@v3
+        if: inputs.upload-build-artifact-path != ''
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.upload-build-artifact-path }}
+          
       - name: Test
         run: make test
       
