@@ -7,12 +7,17 @@ on:
         required: false
         type: string
         default: "1.20.x"
+    secrets:
+      PERSONAL_ACCESS_TOKEN:
+        required: true
 
 jobs:
   go-build-test-lint:
     name: "Runs Go CI steps"
     runs-on: ubuntu-latest
-
+    env:
+      GOPRIVATE: github.com/martelskiy/*
+      TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v3
 
@@ -20,6 +25,9 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
           cache: true
+      
+      - name: Configure git for private modules
+        run: git config --global url.https://martelskiy:$TOKEN@github.com.insteadOf https://github.com
 
       - name: Build
         run: make build
