@@ -25,7 +25,7 @@ env:
   TF_INPUT: 0
   TF_PLAN_FILE: tf.plan
   AWS_REGION: "eu-north-1"
-  TF_VERSION: 1.4.2
+  TF_VERSION: 1.4.4
   TF_VAR_github_sha: ${{ github.sha }}
 
 jobs:
