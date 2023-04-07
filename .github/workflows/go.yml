@@ -23,6 +23,9 @@ jobs:
   go-lint:
     name: "Runs Go Linter steps"
     runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/martelskiy/*
+      TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v3
 
@@ -30,6 +33,9 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
           cache: false
+          
+      - name: Configure git for private modules
+        run: git config --global url.https://martelskiy:$TOKEN@github.com.insteadOf https://github.com
 
       - name: Lint
         uses: golangci/golangci-lint-action@v3
