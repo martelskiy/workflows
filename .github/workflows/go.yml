@@ -20,7 +20,23 @@ on:
         required: true
 
 jobs:
-  go-build-test-lint:
+  go-lint:
+    name: "Runs Go Linter steps"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: false
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+
+  go-build-test:
     name: "Runs Go CI steps"
     runs-on: ubuntu-latest
     env:
@@ -48,8 +64,3 @@ jobs:
           
       - name: Test
         run: make test
-      
-      - name: Lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
