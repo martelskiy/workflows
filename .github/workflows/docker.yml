@@ -14,6 +14,9 @@ on:
         required: false
         type: string
         default: linux/amd64,linux/arm64
+    secrets:
+      PERSONAL_ACCESS_TOKEN:
+        required: true
 
 env:
   AWS_REGION: "eu-north-1"
@@ -71,5 +74,7 @@ jobs:
           file: build/Dockerfile
           push: true
           platforms: ${{ inputs.image-architectures }}
-          build-args: ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          build-args: | 
+              ECR_REGISTRY=${{ env.ECR_REGISTRY }} 
+              GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
