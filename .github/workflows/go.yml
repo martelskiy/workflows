@@ -27,7 +27,7 @@ jobs:
       GOPRIVATE: github.com/martelskiy/*
       TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -49,7 +49,7 @@ jobs:
       GOPRIVATE: github.com/martelskiy/*
       TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
