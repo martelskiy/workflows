@@ -6,7 +6,7 @@ on:
       go-version:
         required: false
         type: string
-        default: "1.20.x"
+        default: "1.21.x"
       upload-build-artifact-path:
         description: "Path to upload Go binary artifact"
         required: false
@@ -33,7 +33,7 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
           cache: false
-          
+
       - name: Configure git for private modules
         run: git config --global url.https://martelskiy:$TOKEN@github.com.insteadOf https://github.com
 
@@ -55,18 +55,18 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
           cache: true
-      
+
       - name: Configure git for private modules
         run: git config --global url.https://martelskiy:$TOKEN@github.com.insteadOf https://github.com
 
       - name: Build
         run: make build
-      
+
       - uses: actions/upload-artifact@v3
         if: inputs.upload-build-artifact-path != ''
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.upload-build-artifact-path }}
-          
+
       - name: Test
         run: make test
