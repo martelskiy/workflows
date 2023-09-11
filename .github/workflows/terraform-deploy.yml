@@ -18,14 +18,14 @@ on:
         description: "Name of the artifact. Required if download-artifact-path input is set"
         required: false
         type: string
-  
+
 env:
   TF_LOG: WARN
   TF_IN_AUTOMATION: 1
   TF_INPUT: 0
   TF_PLAN_FILE: tf.plan
   AWS_REGION: "eu-north-1"
-  TF_VERSION: 1.4.4
+  TF_VERSION: ~1.5
   TF_VAR_github_sha: ${{ github.sha }}
 
 jobs:
@@ -107,7 +107,7 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.download-artifact-path }}
-          
+
       - name: Configure AWS Credentials Production
         uses: aws-actions/configure-aws-credentials@v3
         with:
