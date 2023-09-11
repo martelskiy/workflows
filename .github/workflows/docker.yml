@@ -35,7 +35,7 @@ jobs:
     
     - name: Configure AWS Credentials Development
       if: github.ref != 'refs/heads/main'
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v3
       with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::226165991761:role/github-actions
@@ -43,7 +43,7 @@ jobs:
 
     - name: Configure AWS Credentials Production
       if: github.ref == 'refs/heads/main'
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v3
       with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::480162773870:role/github-actions
