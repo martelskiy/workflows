@@ -41,7 +41,7 @@ jobs:
 
       - name: Configure AWS Credentials Production
         if: inputs.environment == 'production'
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::480162773870:role/github-actions
@@ -49,7 +49,7 @@ jobs:
 
       - name: Configure AWS Credentials Development
         if: inputs.environment == 'development'
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::226165991761:role/github-actions
