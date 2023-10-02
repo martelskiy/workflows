@@ -51,7 +51,7 @@ jobs:
 
     - name: Login to ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
     
     - name: Set image tag
       if: inputs.image-tag == ''
