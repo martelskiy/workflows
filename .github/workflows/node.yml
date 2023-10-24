@@ -1,0 +1,76 @@
+name: "Node Reusable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      upload-build-artifact-path:
+        description: "Path to upload artifacts"
+        required: false
+        type: string
+      artifact-name:
+        description: "Node binary artifact name. Required if upload-build-artifact-path input is set"
+        required: false
+        type: string
+
+jobs:
+  lint:
+    name: "Runs Linter steps"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    strategy:
+      matrix:
+        node-version: ["18.x"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: "${{ inputs.working-directory }}/package-lock.json"
+
+      - name: NPM install
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+  build-test:
+    name: "Runs Build and Test steps"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    strategy:
+      matrix:
+        node-version: ["18.x"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: "${{ inputs.working-directory }}/package-lock.json"
+
+      - name: NPM install
+        run: npm install
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-artifact@v3
+        if: inputs.upload-build-artifact-path != ''
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.upload-build-artifact-path }}
