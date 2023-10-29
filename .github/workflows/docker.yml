@@ -20,6 +20,8 @@ on:
 
 env:
   AWS_REGION: "eu-north-1"
+  PRODUCTION_ACCOUNT_ID: 111111111111
+  DEVELOPMENT_ACCOUNT_ID: 111111111111
   IMAGE_TAG: ${{ inputs.image-tag }}
 
 jobs:
@@ -27,54 +29,54 @@ jobs:
     name: Build Push Docker Image
     runs-on: ubuntu-latest
     permissions:
-        id-token: write
-        contents: read
-   
+      id-token: write
+      contents: read
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Configure AWS Credentials Development
-      if: github.ref != 'refs/heads/main'
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials Development
+        if: github.ref != 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::226165991761:role/github-actions
+          role-to-assume: arn:aws:iam::${{ env.DEVELOPMENT_ACCOUNT_ID }}:role/github-actions
           role-session-name: GithubActionsSession
 
-    - name: Configure AWS Credentials Production
-      if: github.ref == 'refs/heads/main'
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
+      - name: Configure AWS Credentials Production
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::480162773870:role/github-actions
+          role-to-assume: arn:aws:iam::${{ env.PRODUCTION_ACCOUNT_ID }}:role/github-actions
           role-session-name: GithubActionsSession
 
-    - name: Login to ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-    
-    - name: Set image tag
-      if: inputs.image-tag == ''
-      run: |
-        echo $GITHUB_SHA
-        echo "IMAGE_TAG=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        if: inputs.image-tag == ''
+        run: |
+          echo $GITHUB_SHA
+          echo "IMAGE_TAG=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
           platforms: ${{ inputs.image-architectures }}
 
-    - name: Build and push
-      uses: docker/build-push-action@v5
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ inputs.ecr-repository }}
-      with:
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        with:
           context: .
           file: build/Dockerfile
           push: true
           platforms: ${{ inputs.image-architectures }}
-          build-args: | 
-              ECR_REGISTRY=${{ env.ECR_REGISTRY }} 
-              GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          build-args: |
+            ECR_REGISTRY=${{ env.ECR_REGISTRY }} 
+            GITHUB_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
