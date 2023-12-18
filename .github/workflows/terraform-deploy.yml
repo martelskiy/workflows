@@ -51,7 +51,7 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         if: inputs.download-artifact-path != ''
         with:
           name: ${{ inputs.artifact-name }}
@@ -104,7 +104,7 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         if: inputs.download-artifact-path != ''
         with:
           name: ${{ inputs.artifact-name }}
