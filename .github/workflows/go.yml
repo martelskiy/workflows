@@ -62,7 +62,7 @@ jobs:
       - name: Build
         run: make build
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: inputs.upload-build-artifact-path != ''
         with:
           name: ${{ inputs.artifact-name }}
