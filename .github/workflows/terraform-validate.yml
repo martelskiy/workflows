@@ -36,7 +36,7 @@ jobs:
         id: fmt
         run: terraform fmt -recursive -check
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: TFLint Cache Plugin
         with:
           path: ~/.tflint.d/plugins
