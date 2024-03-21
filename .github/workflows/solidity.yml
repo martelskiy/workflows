@@ -1,0 +1,170 @@
+name: "Hybrid Solidity(Hardhat-Forge) Reusable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+        description: "working directory where source code is located"
+      with-private-submodules:
+        required: false
+        type: boolean
+        default: false
+        description: "enable 'Checkout' step with recursive private submodules(PAT GitHub secret named 'PERSONAL_ACCESS_TOKEN' must to be set)"
+      node-version:
+        required: false
+        type: string
+        default: "18.x"
+        description: "node.js version to use for npm"
+      lint-enabled:
+        required: false
+        type: boolean
+        default: true
+        description: "enable or disable linter. Defaults to 'true'"
+      analysis-enabled:
+        required: false
+        type: boolean
+        default: true
+        description: "enable or disable Slither analysis. Defaults to 'true'"
+      slither-fail-on:
+        required: false
+        type: string
+        default: none
+        description: "fail-on value for Slither step. Available optons: 'none', 'config', 'high', 'medium', 'low', 'all'"
+
+jobs:
+  compile:
+    name: NPM compile
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == true
+        with:
+          submodules: recursive
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == false
+        with:
+          submodules: recursive
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: NPM compile
+        run: |
+          npm install
+          npm run compile
+
+  test:
+    needs: [compile]
+    name: NPM test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == true
+        with:
+          submodules: recursive
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == false
+        with:
+          submodules: recursive
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: NPM test
+        run: |
+          npm install
+          npm run test
+
+  lint:
+    needs: [compile]
+    name: NPM lint
+    runs-on: ubuntu-latest
+    if: ${{ inputs.lint-enabled }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: NPM lint
+        run: |
+          npm install
+          npm run lint
+
+  analyse:
+    name: Slither Analysis
+    needs: [compile]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.analysis-enabled }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == true
+        with:
+          submodules: recursive
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - uses: actions/checkout@v4
+        if: inputs.with-private-submodules == false
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: |
+          forge install
+          npm install
+
+      - name: Build project
+        run: forge build --build-info --force
+
+      - uses: crytic/slither-action@v0.3.1
+        id: slither
+        with:
+          ignore-compile: true
+          target: ${{ inputs.working-directory }}
+          slither-config: ${{ inputs.working-directory }}/slither.config.json
+          fail-on: ${{ inputs.slither-fail-on }}
+          sarif: results.sarif
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}
