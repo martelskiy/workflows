@@ -6,7 +6,7 @@ on:
       go-version:
         required: false
         type: string
-        default: "1.21.x"
+        default: "1.24.x"
       upload-build-artifact-path:
         description: "Path to upload Go binary artifact"
         required: false
