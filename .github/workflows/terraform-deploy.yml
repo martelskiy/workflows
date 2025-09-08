@@ -58,7 +58,7 @@ jobs:
           path: ${{ inputs.download-artifact-path }}
 
       - name: Configure AWS Credentials development
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.DEVELOPMENT_ACCOUNT_ID }}:role/github-actions
@@ -111,7 +111,7 @@ jobs:
           path: ${{ inputs.download-artifact-path }}
 
       - name: Configure AWS Credentials Production
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ env.PRODUCTION_ACCOUNT_ID }}:role/github-actions
